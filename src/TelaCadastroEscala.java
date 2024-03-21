@@ -3,6 +3,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 public class TelaCadastroEscala extends JFrame {
     private JTextField txtInicioPeriodo, txtFimPeriodo, txtValorHoraPeriodo;
@@ -14,6 +15,8 @@ public class TelaCadastroEscala extends JFrame {
     private ArrayList<String> jornadasCriadas = new ArrayList<>();
     private ArrayList<float[]> periodos = new ArrayList<>();
     private ArrayList<Jornada> jornadas = new ArrayList<>();
+    private JLabel lblTotalHoras;
+    private float somaTotalHoras = 0;
 
 
     public TelaCadastroEscala() {
@@ -55,7 +58,9 @@ public class TelaCadastroEscala extends JFrame {
         JButton btnCriarPeriodo = new JButton("Criar Período");
         btnCriarPeriodo.setBounds(150, 120, 200, 30);
         panelPeriodo.add(btnCriarPeriodo);
-
+        lblTotalHoras = new JLabel("0/24");
+        lblTotalHoras.setBounds(50, 140, 200, 30);
+        panelPeriodo.add(lblTotalHoras);
         panel.add(panelPeriodo);
 
         btnCriarPeriodo.addActionListener(new ActionListener() {
@@ -73,32 +78,35 @@ public class TelaCadastroEscala extends JFrame {
                             JOptionPane.showMessageDialog(null, "Os valores não podem ser negativos.",
                                     "Valores inválidos", JOptionPane.WARNING_MESSAGE);
                         } else {
-                            System.out.println("teste");
                             if (periodos.isEmpty()) {
                                 JOptionPane.showMessageDialog(null, "Período criado.",
                                     "Sucesso", JOptionPane.INFORMATION_MESSAGE);
                                     periodos.add(new float[]{inicio, fim, valorHora});
                                     criarPeriodo();
                             } else {
-                                for (float[] periodo : periodos) {
+                                Iterator<float[]> iterator = periodos.iterator();
+                                while (iterator.hasNext()) {
+                                    float[] periodo = iterator.next();
                                     float start = periodo[0];
                                     float end = periodo[1];
                                     if (inicio < end && start < inicio) {
-                                        JOptionPane.showMessageDialog(null, "Os periodos estão se convergindo.",
-                                        "Valores inválidos", JOptionPane.WARNING_MESSAGE);
+                                        JOptionPane.showMessageDialog(null, "Os períodos estão se convergindo.",
+                                                "Valores inválidos", JOptionPane.WARNING_MESSAGE);
+                                        return; 
                                     } else if (inicio < start && end > start) {
-                                        JOptionPane.showMessageDialog(null, "Os periodos estão se convergindo.",
-                                        "Valores inválidos", JOptionPane.WARNING_MESSAGE);
+                                        JOptionPane.showMessageDialog(null, "Os períodos estão se convergindo.",
+                                                "Valores inválidos", JOptionPane.WARNING_MESSAGE);
+                                        return;
                                     } else if (start == inicio || end == fim) {
-                                        JOptionPane.showMessageDialog(null, "Os periodos estão se convergindo.",
-                                        "Valores inválidos", JOptionPane.WARNING_MESSAGE);
-                                    } else {
-                                        JOptionPane.showMessageDialog(null, "Período criado.",
+                                        JOptionPane.showMessageDialog(null, "Os períodos estão se convergindo.",
+                                                "Valores inválidos", JOptionPane.WARNING_MESSAGE);
+                                        return; 
+                                    }
+                                }
+                                JOptionPane.showMessageDialog(null, "Período criado.",
                                         "Sucesso", JOptionPane.INFORMATION_MESSAGE);
                                         periodos.add(new float[]{inicio, fim, valorHora});
                                         criarPeriodo();
-                                    }
-                                }
                             }
                         }
                     } catch (NumberFormatException ex) {
@@ -253,6 +261,7 @@ public class TelaCadastroEscala extends JFrame {
         if (!inicio.isEmpty() && !fim.isEmpty() && !valor.isEmpty()) {
             periodosCriados.add(periodo);
             atualizarAreaPeriodos();
+            atualizarLabelTotalHoras();
         }
     }
 
@@ -290,6 +299,26 @@ public class TelaCadastroEscala extends JFrame {
             sb.append(jornada).append("\n");
         }
         areaJornadas.setText(sb.toString());
+    }
+
+    private float calcularSomaTotalHoras() {
+        float somaTotalHoras = 0;
+        for (float[] periodo : periodos) {
+            float duracaoPeriodo;
+            if (periodo[1] > periodo[0]) {
+                duracaoPeriodo = periodo[1] - periodo[0];
+            } else {
+                duracaoPeriodo = (24 - periodo[0]) + periodo[1];
+            }
+            somaTotalHoras += duracaoPeriodo;
+        }
+        return somaTotalHoras;
+    }
+
+    private void atualizarLabelTotalHoras() {
+        float somaTotalHoras = calcularSomaTotalHoras();
+    
+        lblTotalHoras.setText(String.format("%.2f/24", somaTotalHoras));
     }
 
     public static void main(String[] args) {
