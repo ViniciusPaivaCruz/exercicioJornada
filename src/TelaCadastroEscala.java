@@ -4,7 +4,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
-public class MainFrame extends JFrame {
+public class TelaCadastroEscala extends JFrame {
     private JTextField txtInicioPeriodo, txtFimPeriodo, txtValorHoraPeriodo;
     private JTextField txtNomeJornada, txtDescricaoJornada, txtAposJornada, txtAdicionarJornada;
     private JTextArea areaPeriodos, areaJornadas;
@@ -16,7 +16,7 @@ public class MainFrame extends JFrame {
     private ArrayList<Jornada> jornadas = new ArrayList<>();
 
 
-    public MainFrame() {
+    public TelaCadastroEscala() {
         setTitle("Gerenciador de Jornadas");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(800, 600);
@@ -54,12 +54,6 @@ public class MainFrame extends JFrame {
 
         JButton btnCriarPeriodo = new JButton("Criar Período");
         btnCriarPeriodo.setBounds(150, 120, 200, 30);
-        btnCriarPeriodo.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                criarPeriodo();
-            }
-        });
         panelPeriodo.add(btnCriarPeriodo);
 
         panel.add(panelPeriodo);
@@ -79,9 +73,33 @@ public class MainFrame extends JFrame {
                             JOptionPane.showMessageDialog(null, "Os valores não podem ser negativos.",
                                     "Valores inválidos", JOptionPane.WARNING_MESSAGE);
                         } else {
-                            JOptionPane.showMessageDialog(null, "Período criado.",
+                            System.out.println("teste");
+                            if (periodos.isEmpty()) {
+                                JOptionPane.showMessageDialog(null, "Período criado.",
                                     "Sucesso", JOptionPane.INFORMATION_MESSAGE);
-                            periodos.add(new float[]{inicio, fim, valorHora});
+                                    periodos.add(new float[]{inicio, fim, valorHora});
+                                    criarPeriodo();
+                            } else {
+                                for (float[] periodo : periodos) {
+                                    float start = periodo[0];
+                                    float end = periodo[1];
+                                    if (inicio < end && start < inicio) {
+                                        JOptionPane.showMessageDialog(null, "Os periodos estão se convergindo.",
+                                        "Valores inválidos", JOptionPane.WARNING_MESSAGE);
+                                    } else if (inicio < start && end > start) {
+                                        JOptionPane.showMessageDialog(null, "Os periodos estão se convergindo.",
+                                        "Valores inválidos", JOptionPane.WARNING_MESSAGE);
+                                    } else if (start == inicio || end == fim) {
+                                        JOptionPane.showMessageDialog(null, "Os periodos estão se convergindo.",
+                                        "Valores inválidos", JOptionPane.WARNING_MESSAGE);
+                                    } else {
+                                        JOptionPane.showMessageDialog(null, "Período criado.",
+                                        "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+                                        periodos.add(new float[]{inicio, fim, valorHora});
+                                        criarPeriodo();
+                                    }
+                                }
+                            }
                         }
                     } catch (NumberFormatException ex) {
                         JOptionPane.showMessageDialog(null, "Os valores devem ser números válidos.",
@@ -159,10 +177,33 @@ public class MainFrame extends JFrame {
                             "Campos obrigatórios", JOptionPane.WARNING_MESSAGE);
                 } else {
                     // Se os campos estiverem preenchidos, execute a ação de confirmação aqui
-                    JOptionPane.showMessageDialog(null, "Jornada criada.",
-                            "Sucesso", JOptionPane.INFORMATION_MESSAGE);
-                    Jornada novaJornada = new Jornada(periodos, txtNomeJornada.getText(), txtDescricaoJornada.getText(), Float.parseFloat(txtAposJornada.getText()), Float.parseFloat(txtAdicionarJornada.getText()));
-                    jornadas.add(novaJornada);
+                    ArrayList<String> dias = new ArrayList<>();
+                    for (int i = 0; i < 7; i++) {
+                        if (checkBoxDias[i].isSelected()) {
+                            dias.add(checkBoxDias[i].getText());
+                            panelJornada.remove(checkBoxDias[i]);
+                        }
+                    }
+                    if (dias.isEmpty()) {
+                        JOptionPane.showMessageDialog(null, "Preencha o(s) dia(s) da semana.",
+                            "Campos obrigatórios", JOptionPane.WARNING_MESSAGE);
+                    } else {
+                        if (!jornadas.isEmpty()) {
+                            for (Jornada jornada : jornadas) {
+                                if (jornada.getNome() == txtNomeJornada.getText()) {
+                                    JOptionPane.showMessageDialog(null, "Nome da jornada já utilizado.",
+                                    "Campos inválidos", JOptionPane.WARNING_MESSAGE);
+                                }
+                            }
+                        }
+                        panelJornada.revalidate();
+                        panelJornada.repaint();
+                        JOptionPane.showMessageDialog(null, "Jornada criada.",
+                                "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+                        Jornada novaJornada = new Jornada(periodos, txtNomeJornada.getText(), txtDescricaoJornada.getText(), dias, Float.parseFloat(txtAposJornada.getText()), Float.parseFloat(txtAdicionarJornada.getText()));
+                        jornadas.add(novaJornada);
+                        periodos.clear();
+                    }
                 }
             }
         });
@@ -230,6 +271,7 @@ public class MainFrame extends JFrame {
         }
         if (!txtNomeJornada.getText().isEmpty() && !txtAposJornada.getText().isEmpty() && !txtAdicionarJornada.getText().isEmpty() && diasCheck) {
             jornadasCriadas.add(jornada.toString());
+            atualizarAreaPeriodos();
             atualizarAreaJornadas();
         }
     }
@@ -254,7 +296,7 @@ public class MainFrame extends JFrame {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                new MainFrame();
+                new TelaCadastroEscala();
             }
         });
     }
