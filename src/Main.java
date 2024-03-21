@@ -1,4 +1,4 @@
-import java.util.ArrayList;
+/* import java.util.ArrayList;
 public class Main {
     public static float horas_trabalhadas(ArrayList<float[]> horario, float h1, float h2) {
         float result = 0;
@@ -66,4 +66,4 @@ public class Main {
         // horario3.add(new float[]{22, 6, 2});
         // horario3.add(new float[]{6, 8, 1.5f});
     }
-}
+} */

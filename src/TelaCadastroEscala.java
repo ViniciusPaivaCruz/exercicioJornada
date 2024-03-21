@@ -13,7 +13,7 @@ public class MainFrame extends JFrame {
     private ArrayList<String> periodosCriados = new ArrayList<>();
     private ArrayList<String> jornadasCriadas = new ArrayList<>();
     private ArrayList<float[]> periodos = new ArrayList<>();
-    private ArrayList jornada = new ArrayList<>();
+    private ArrayList<Jornada> jornadas = new ArrayList<>();
 
 
     public MainFrame() {
@@ -161,13 +161,8 @@ public class MainFrame extends JFrame {
                     // Se os campos estiverem preenchidos, execute a ação de confirmação aqui
                     JOptionPane.showMessageDialog(null, "Jornada criada.",
                             "Sucesso", JOptionPane.INFORMATION_MESSAGE);
-                    jornada.add(periodos);
-                    jornada.add(txtNomeJornada.getText());
-                    jornada.add(txtAposJornada.getText().isEmpty());
-                    jornada.add(txtAdicionarJornada.getText());
-                    if(!txtDescricaoJornada.getText().isEmpty()){
-                        jornada.add(txtAdicionarJornada.getText());
-                    }
+                    Jornada novaJornada = new Jornada(periodos, txtNomeJornada.getText(), txtDescricaoJornada.getText(), Float.parseFloat(txtAposJornada.getText()), Float.parseFloat(txtAdicionarJornada.getText()));
+                    jornadas.add(novaJornada);
                 }
             }
         });
@@ -188,6 +183,24 @@ public class MainFrame extends JFrame {
 
         add(panel);
         setVisible(true);
+
+        JButton btnCriarEscala = new JButton("Criar Escala");
+        btnCriarEscala.setBounds(300, 470, 200, 30);
+        btnCriarEscala.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                criarEscala();
+            }
+        });
+        panel.add(btnCriarEscala);
+
+    }
+
+    protected void criarEscala() {
+        Escala escala = new Escala();
+        for (Jornada jornada : jornadas) {
+            escala.adicionarJornada(jornada);
+        }
     }
 
     private void criarPeriodo() {
