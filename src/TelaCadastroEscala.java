@@ -16,7 +16,7 @@ public class TelaCadastroEscala extends JFrame {
     private ArrayList<float[]> periodos = new ArrayList<>();
     private ArrayList<Jornada> jornadas = new ArrayList<>();
     private JLabel lblTotalHoras;
-    private float somaTotalHoras = 0;
+    private int diasSelecionados = 0;
 
 
     public TelaCadastroEscala() {
@@ -77,6 +77,12 @@ public class TelaCadastroEscala extends JFrame {
                         if (inicio < 0 || fim < 0 || valorHora < 0) {
                             JOptionPane.showMessageDialog(null, "Os valores não podem ser negativos.",
                                     "Valores inválidos", JOptionPane.WARNING_MESSAGE);
+                        } else if (inicio > 24 || fim > 24) {
+                            JOptionPane.showMessageDialog(null, "Hora fora do limite.",
+                                    "Valores inválidos", JOptionPane.WARNING_MESSAGE);
+                        } else if (inicio == 24) {
+                            JOptionPane.showMessageDialog(null, "Utilize 0 para meia noite no início.",
+                                    "Valores inválidos", JOptionPane.WARNING_MESSAGE);
                         } else {
                             if (periodos.isEmpty()) {
                                 JOptionPane.showMessageDialog(null, "Período criado.",
@@ -101,7 +107,7 @@ public class TelaCadastroEscala extends JFrame {
                                         JOptionPane.showMessageDialog(null, "Os períodos estão se convergindo.",
                                                 "Valores inválidos", JOptionPane.WARNING_MESSAGE);
                                         return; 
-                                    }
+                                    } 
                                 }
                                 JOptionPane.showMessageDialog(null, "Período criado.",
                                         "Sucesso", JOptionPane.INFORMATION_MESSAGE);
@@ -166,29 +172,28 @@ public class TelaCadastroEscala extends JFrame {
 
         JButton btnCriarJornada = new JButton("Criar Jornada");
         btnCriarJornada.setBounds(150, 150, 200, 30);
-        btnCriarJornada.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                criarJornada();
-            }
-        });
         panelJornada.add(btnCriarJornada);
 
         panel.add(panelJornada);
 
         btnCriarJornada.addActionListener(new ActionListener() {
-            @SuppressWarnings("unchecked")
             public void actionPerformed(ActionEvent e) {
-                // Verifica se os campos estão preenchidos
+                float somaHoras = calcularSomaTotalHoras();
                 if (txtNomeJornada.getText().isEmpty() || txtAposJornada.getText().isEmpty() || txtAdicionarJornada.getText().isEmpty()) {
-                    JOptionPane.showMessageDialog(null, "Por favor, preencha todos os campos.",
-                            "Campos obrigatórios", JOptionPane.WARNING_MESSAGE);
+                    JOptionPane.showMessageDialog(null, "Por favor, preencha todos os campos.", "Campos obrigatórios", JOptionPane.WARNING_MESSAGE);
+                    return;
+                } else if (somaHoras != 24) {
+                    JOptionPane.showMessageDialog(null, "Por favor, crie todos os períodos necessários.", "Períodos insuficientes", JOptionPane.WARNING_MESSAGE);
+                    return;
                 } else {
-                    // Se os campos estiverem preenchidos, execute a ação de confirmação aqui
                     ArrayList<String> dias = new ArrayList<>();
                     for (int i = 0; i < 7; i++) {
                         if (checkBoxDias[i].isSelected()) {
-                            dias.add(checkBoxDias[i].getText());
+                            checkBoxDias[i].setSelected(false);
+                            if (!(dias.contains(checkBoxDias[i].getText()))) {
+                                diasSelecionados++;
+                                dias.add(checkBoxDias[i].getText());
+                            }
                             panelJornada.remove(checkBoxDias[i]);
                         }
                     }
@@ -196,11 +201,12 @@ public class TelaCadastroEscala extends JFrame {
                         JOptionPane.showMessageDialog(null, "Preencha o(s) dia(s) da semana.",
                             "Campos obrigatórios", JOptionPane.WARNING_MESSAGE);
                     } else {
-                        if (!jornadas.isEmpty()) {
+                        if (!(jornadas.isEmpty())) {
                             for (Jornada jornada : jornadas) {
-                                if (jornada.getNome() == txtNomeJornada.getText()) {
+                                if (jornada.getNome().equals(txtNomeJornada.getText())) {
                                     JOptionPane.showMessageDialog(null, "Nome da jornada já utilizado.",
                                     "Campos inválidos", JOptionPane.WARNING_MESSAGE);
+                                    return;
                                 }
                             }
                         }
@@ -209,8 +215,13 @@ public class TelaCadastroEscala extends JFrame {
                         JOptionPane.showMessageDialog(null, "Jornada criada.",
                                 "Sucesso", JOptionPane.INFORMATION_MESSAGE);
                         Jornada novaJornada = new Jornada(periodos, txtNomeJornada.getText(), txtDescricaoJornada.getText(), dias, Float.parseFloat(txtAposJornada.getText()), Float.parseFloat(txtAdicionarJornada.getText()));
+                        criarJornada(novaJornada);
                         jornadas.add(novaJornada);
+                        dias.clear();
                         periodos.clear();
+                        periodosCriados.clear();
+                        atualizarAreaPeriodos();
+                        
                     }
                 }
             }
@@ -238,7 +249,13 @@ public class TelaCadastroEscala extends JFrame {
         btnCriarEscala.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                criarEscala();
+                if (diasSelecionados != 7) {
+                    JOptionPane.showMessageDialog(null, "É necessário ter jornadas para toda a semana.", "Jornadas insuficientes", JOptionPane.WARNING_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(null, "Escala criada.",
+                                "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+                    criarEscala();
+                }
             }
         });
         panel.add(btnCriarEscala);
@@ -246,10 +263,7 @@ public class TelaCadastroEscala extends JFrame {
     }
 
     protected void criarEscala() {
-        Escala escala = new Escala();
-        for (Jornada jornada : jornadas) {
-            escala.adicionarJornada(jornada);
-        }
+        Escala escala = new Escala(jornadas);
     }
 
     private void criarPeriodo() {
@@ -265,24 +279,18 @@ public class TelaCadastroEscala extends JFrame {
         }
     }
 
-    private void criarJornada() {
+    private void criarJornada(Jornada novaJornada) {
         StringBuilder jornada = new StringBuilder();
         jornada.append("Nome: ").append(txtNomeJornada.getText()).append(", ");
         jornada.append("Descrição: ").append(txtDescricaoJornada.getText()).append(", ");
         jornada.append("Após ").append(txtAposJornada.getText()).append(" adicionar ").append(txtAdicionarJornada.getText()).append(" hora(s), ");
         jornada.append("Dias: ");
-        boolean diasCheck = false;
-        for (int i = 0; i < checkBoxDias.length; i++) {
-            if (checkBoxDias[i].isSelected()) {
-                jornada.append(checkBoxDias[i].getText()).append(", ");
-                diasCheck = true;
-            }
+        for (String dia : novaJornada.getDias()) {
+            jornada.append(dia).append(", ");
         }
-        if (!txtNomeJornada.getText().isEmpty() && !txtAposJornada.getText().isEmpty() && !txtAdicionarJornada.getText().isEmpty() && diasCheck) {
-            jornadasCriadas.add(jornada.toString());
-            atualizarAreaPeriodos();
-            atualizarAreaJornadas();
-        }
+        jornadasCriadas.add(jornada.toString());
+        atualizarAreaPeriodos();
+        atualizarAreaJornadas();
     }
 
     private void atualizarAreaPeriodos() {
@@ -318,7 +326,7 @@ public class TelaCadastroEscala extends JFrame {
     private void atualizarLabelTotalHoras() {
         float somaTotalHoras = calcularSomaTotalHoras();
     
-        lblTotalHoras.setText(String.format("%.2f/24", somaTotalHoras));
+        lblTotalHoras.setText(String.format("%.1f/24", somaTotalHoras));
     }
 
     public static void main(String[] args) {

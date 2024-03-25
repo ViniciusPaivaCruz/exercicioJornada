@@ -2,13 +2,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Escala {
-    private List<Jornada> jornadas;
+    private ArrayList<Jornada> jornadas;
 
-    public Escala() {
-        this.jornadas = new ArrayList<>();
-    }
-    public void adicionarJornada(Jornada jornada) {
-        jornadas.add(jornada);
+    public Escala(ArrayList<Jornada> jornadas) {
+        this.jornadas = jornadas;
     }
     
     public List<Jornada> getJornadas() {
